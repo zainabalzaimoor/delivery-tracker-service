@@ -12,6 +12,6 @@ This project provides a centralized backend where:
 To maintain a professional engineering workflow, the following resources are used for planning:
 
 * **Project Management:** [View Trello Board](https://trello.com/b/Ao1MNZnD/backend-api-spring-boot-application) 📋
-* * **Database Design (ERD):** ![ERD Diagram](./docs/erd.png) 🏗️
+* * **Database Design (ERD):** ![ERD Diagram](./docs/erd.png) 
 
 
