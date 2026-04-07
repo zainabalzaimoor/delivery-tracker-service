@@ -3,6 +3,7 @@ package com.app.deliverytracker.controller;
 import com.app.deliverytracker.dto.ChangePasswordRequest;
 import com.app.deliverytracker.dto.LoginRequest;
 import com.app.deliverytracker.dto.ResetPasswordRequest;
+import com.app.deliverytracker.dto.UserProfileUpdateDTO;
 import com.app.deliverytracker.model.User;
 import com.app.deliverytracker.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -107,6 +109,25 @@ public class UserController {
             return ResponseEntity.ok("Password changed successfully!");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/profile")
+    public ResponseEntity<String> updateProfile(
+            @RequestBody UserProfileUpdateDTO request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        userService.updateUserProfile(userDetails.getUsername(), request);
+        return ResponseEntity.ok("Profile details updated successfully.");
+    }
+    @PostMapping("/profile/image")
+    public ResponseEntity<String> uploadImage(
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            String fileName = userService.uploadImage(userDetails.getUsername(), file);
+            return ResponseEntity.ok("Profile image uploaded: " + fileName);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Failed to upload image: " + e.getMessage());
         }
     }
 
