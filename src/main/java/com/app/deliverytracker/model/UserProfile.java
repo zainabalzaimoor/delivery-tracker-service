@@ -2,6 +2,7 @@ package com.app.deliverytracker.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -11,8 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
-@Setter
+@Data
 @Table(name = "users_profile")
 public class UserProfile {
     @Id
@@ -20,7 +20,7 @@ public class UserProfile {
     private Long id;
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
-//    @JsonBackReference
+    @JsonBackReference
     private User user;
     private String profileImage;
     private String phone;
@@ -31,4 +31,5 @@ public class UserProfile {
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
 }

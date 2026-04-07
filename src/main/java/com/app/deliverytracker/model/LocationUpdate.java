@@ -1,16 +1,13 @@
 package com.app.deliverytracker.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter @Setter @AllArgsConstructor @NoArgsConstructor
+@Data
 @Table(name = "location_updates")
 public class LocationUpdate {
     @Id
