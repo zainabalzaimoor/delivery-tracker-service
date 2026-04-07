@@ -28,6 +28,9 @@ public class User {
     private boolean isVerified = false;
     @Column(unique = true)
     private String verificationToken;
+
+    private String resetToken;
+    private LocalDateTime resetTokenExpiry;
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp

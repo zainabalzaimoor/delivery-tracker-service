@@ -60,4 +60,55 @@ public class UserController {
         }
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        try {
+            userService.processForgotPassword(email);
+        } catch (Exception e) {
+            // We log the error internally, but tell the user the same thing
+            System.out.println("Reset attempted for non-existent email: " + email);
+        }
+        // The user sees this either way
+        return ResponseEntity.ok("If an account exists with that email, a reset link has been sent.");
+    }
+
+    // This shows the "Friendly" Page
+    @GetMapping("/reset-password")
+    public String showResetPage(@RequestParam("token") String token, Model model) {
+        if (userService.isResetTokenValid(token)) {
+            model.addAttribute("token", token); // Pass token to the HTML
+            return "reset-password"; // Points to reset-password.html
+        }
+        return "error-page"; // Create a simple error.html for expired links
+    }
+
+    @PostMapping("/reset-password-ui")
+    public String handleHtmlReset(@RequestParam("token") String token,
+                                  @RequestParam("newPassword") String newPassword) {
+        userService.updatePassword(token, newPassword);
+        return "redirect:/api/auth/login-success"; // Redirect to a "Success" page
+    }
+    @GetMapping("/login-success")
+    public String showSuccess() {
+        return "success-page";
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request,
+                                            @AuthenticationPrincipal UserDetails userDetails){
+        if (!request.newPassword().equals(request.confirmPassword())) {
+            return ResponseEntity.badRequest().body("New passwords do not match.");
+        }
+
+        try {
+            userService.changePassword(userDetails.getUsername(),
+                    request.oldPassword(),
+                    request.newPassword());
+            return ResponseEntity.ok("Password changed successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+
 }
