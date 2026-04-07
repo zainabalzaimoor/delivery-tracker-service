@@ -8,6 +8,7 @@ import com.app.deliverytracker.model.UserProfile;
 import com.app.deliverytracker.repository.UserRepository;
 import com.app.deliverytracker.security.JWTUtils;
 import com.app.deliverytracker.security.MyUserDetailsService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -132,4 +133,14 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
+
+    @Transactional
+    public void softDeleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setStatus(UserStatus.INACTIVE);
+        userRepository.save(user);
+    }
+
 }
