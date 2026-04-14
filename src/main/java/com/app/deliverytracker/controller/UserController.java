@@ -5,10 +5,12 @@ import com.app.deliverytracker.dto.LoginRequest;
 import com.app.deliverytracker.dto.ResetPasswordRequest;
 import com.app.deliverytracker.dto.UserProfileUpdateDTO;
 import com.app.deliverytracker.model.User;
+import com.app.deliverytracker.model.UserProfile;
 import com.app.deliverytracker.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,6 +19,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -112,12 +116,11 @@ public class UserController {
         }
     }
 
-    @PatchMapping("/profile")
-    public ResponseEntity<String> updateProfile(
-            @RequestBody UserProfileUpdateDTO request,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        userService.updateUserProfile(userDetails.getUsername(), request);
-        return ResponseEntity.ok("Profile details updated successfully.");
+    @PutMapping("/update-profile")
+    public ResponseEntity<?> updateProfile(@ModelAttribute UserProfileUpdateDTO userProfileUpdateRequest,
+                                           Principal principal) throws IOException {
+        UserProfile updated = userService.updateFullProfile(principal.getName(), userProfileUpdateRequest);
+        return ResponseEntity.ok(updated);
     }
     @PostMapping("/profile/image")
     public ResponseEntity<String> uploadImage(
