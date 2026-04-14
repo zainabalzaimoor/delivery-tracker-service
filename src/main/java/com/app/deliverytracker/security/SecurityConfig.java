@@ -32,8 +32,11 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/login",
-                                "/api/auth/verify")
-                                .permitAll()// Login/Register are public
+                                "/api/auth/verify",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password"
+                                ,"/login-success")
+                                .permitAll()
                         .anyRequest().authenticated() // Everything else is locked
                 );
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

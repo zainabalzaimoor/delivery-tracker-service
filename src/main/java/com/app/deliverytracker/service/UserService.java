@@ -88,4 +88,48 @@ public class UserService {
         return jwtUtils.generateToken(userDetails);
     }
 
+    public void processForgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("No account found with this email."));
+
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        user.setResetTokenExpiry(LocalDateTime.now().plusMinutes(15)); // Token valid for 15 mins
+
+        userRepository.save(user);
+        emailService.sendResetPasswordEmail(user.getEmail(), token);
+    }
+
+    public boolean isResetTokenValid(String token) {
+        return userRepository.findByResetToken(token)
+                .map(user -> user.getResetTokenExpiry().isAfter(LocalDateTime.now()))
+                .orElse(false);
+    }
+
+    public void updatePassword(String token, String newPassword) {
+        User user = userRepository.findByResetToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid reset token."));
+
+        if (user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Reset token has expired.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetToken(null); // Critical: Token can only be used once
+        user.setResetTokenExpiry(null);
+
+        userRepository.save(user);
+    }
+
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("The old password you entered is incorrect.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }

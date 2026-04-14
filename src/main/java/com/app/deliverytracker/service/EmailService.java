@@ -25,4 +25,14 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    public void sendResetPasswordEmail(String toEmail, String token) {
+        String resetLink = "http://localhost:8080/api/auth/reset-password?token=" + token;
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("Password Reset Request");
+        message.setText("Click the link below to reset your password. Valid for 15 minutes:\n" + resetLink);
+
+        mailSender.send(message);
+    }
 }
