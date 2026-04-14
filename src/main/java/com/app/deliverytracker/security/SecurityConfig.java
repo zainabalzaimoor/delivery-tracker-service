@@ -37,6 +37,7 @@ public class SecurityConfig {
                                 "/api/auth/reset-password"
                                 ,"/login-success")
                                 .permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated() // Everything else is locked
                 );
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
