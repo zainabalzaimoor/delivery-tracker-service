@@ -1,5 +1,6 @@
 package com.app.deliverytracker.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,6 +20,7 @@ public class DriverAssignment {
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
+    @JsonIgnore
     private Order order;
     @ManyToOne
     @JoinColumn(name = "driver_id", nullable = false)

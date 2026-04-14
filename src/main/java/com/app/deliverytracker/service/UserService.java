@@ -1,10 +1,12 @@
 package com.app.deliverytracker.service;
 
 import com.app.deliverytracker.dto.LoginRequest;
+import com.app.deliverytracker.dto.UserProfileUpdateDTO;
 import com.app.deliverytracker.enums.Role;
 import com.app.deliverytracker.enums.UserStatus;
 import com.app.deliverytracker.model.User;
 import com.app.deliverytracker.model.UserProfile;
+import com.app.deliverytracker.repository.UserProfileRepository;
 import com.app.deliverytracker.repository.UserRepository;
 import com.app.deliverytracker.security.JWTUtils;
 import com.app.deliverytracker.security.MyUserDetailsService;
@@ -14,7 +16,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -26,14 +34,16 @@ public class UserService {
     private final EmailService emailService;
     private final JWTUtils jwtUtils;
     private final MyUserDetailsService userDetailsService;
+    private final UserProfileRepository userProfileRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService, JWTUtils jwtUtils, MyUserDetailsService userDetailsService) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService, JWTUtils jwtUtils, MyUserDetailsService userDetailsService, UserProfileRepository userProfileRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
+        this.userProfileRepository = userProfileRepository;
     }
 
     public ResponseEntity<?> createUser(User user) throws Exception {
@@ -142,5 +152,55 @@ public class UserService {
         user.setStatus(UserStatus.INACTIVE);
         userRepository.save(user);
     }
+
+    @Transactional
+    public void updateUserProfile(String email, UserProfileUpdateDTO request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserProfile profile = user.getProfile();
+
+        if (profile == null) {
+            profile = new UserProfile();
+            profile.setUser(user);
+        }
+
+        if (request.phone() != null) profile.setPhone(request.phone());
+        if (request.address() != null) profile.setAddress(request.address());
+        if (request.dateOfBirth() != null) profile.setDateOfBirth(request.dateOfBirth());
+
+        userProfileRepository.save(profile);
+    }
+    @Transactional
+    public String uploadImage(String email, MultipartFile file) throws IOException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserProfile profile = getOrCreateProfile(user);
+        String UPLOAD_DIR = "uploads/profiles/";
+        Path uploadPath = Paths.get(UPLOAD_DIR);
+        if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+
+        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        Path filePath = uploadPath.resolve(fileName);
+
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        profile.setProfileImage(fileName);
+        userProfileRepository.save(profile);
+
+        return fileName;
+    }
+
+    private UserProfile getOrCreateProfile(User user) {
+        if (user.getProfile() == null) {
+            UserProfile newProfile = new UserProfile();
+            newProfile.setUser(user);
+            return newProfile;
+        }
+        return user.getProfile();
+    }
+
+
 
 }

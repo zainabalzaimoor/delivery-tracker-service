@@ -2,6 +2,7 @@ package com.app.deliverytracker.model;
 
 import com.app.deliverytracker.enums.Role;
 import com.app.deliverytracker.enums.UserStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -40,6 +41,7 @@ public class User {
     @JsonManagedReference
     private UserProfile profile;
     @OneToMany(mappedBy = "customer")
+    @JsonIgnore
     private List<Order> orders;
     @OneToMany(mappedBy = "driver")
     private List<DriverAssignment> driverAssignments;

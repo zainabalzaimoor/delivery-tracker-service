@@ -1,6 +1,8 @@
 package com.app.deliverytracker.model;
 
 import com.app.deliverytracker.enums.OrderStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,6 +22,9 @@ public class Order {
     private OrderStatus status;
     private String pickupAddress;
     private String dropoffAddress;
+    private String recipientName;
+    private String recipientPhone;
+    private Double totalPrice;
     @CreationTimestamp
     private LocalDateTime createdAt;
     @ManyToOne
