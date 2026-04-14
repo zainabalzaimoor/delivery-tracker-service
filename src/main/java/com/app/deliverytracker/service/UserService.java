@@ -34,6 +34,7 @@ public class UserService {
     private final EmailService emailService;
     private final JWTUtils jwtUtils;
     private final MyUserDetailsService userDetailsService;
+    private final Path root = Paths.get("uploads/profiles");
     private final UserProfileRepository userProfileRepository;
 
     @Autowired
@@ -154,22 +155,39 @@ public class UserService {
     }
 
     @Transactional
-    public void updateUserProfile(String email, UserProfileUpdateDTO request) {
+    public UserProfile updateFullProfile(String email, UserProfileUpdateDTO request) throws IOException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Use your One-to-One relationship getter
         UserProfile profile = user.getProfile();
 
-        if (profile == null) {
-            profile = new UserProfile();
-            profile.setUser(user);
+        if (request != null) {
+            // Update text fields
+            if (request.phone() != null) profile.setPhone(request.phone());
+            if (request.address() != null) profile.setAddress(request.address());
+            if (request.dateOfBirth() != null) profile.setDateOfBirth(request.dateOfBirth());
+
+            // Update Image
+            MultipartFile file = request.file();
+            if (file != null && !file.isEmpty()) {
+                // Delete old image if it exists
+                if (profile.getProfileImage() != null) {
+                    Path oldPath = root.resolve(profile.getProfileImage());
+                    Files.deleteIfExists(oldPath);
+                }
+
+                // Save new image with unique name
+                String newFilename = user.getUsername() + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
+                if (!Files.exists(root)) Files.createDirectories(root);
+                Files.copy(file.getInputStream(), this.root.resolve(newFilename), StandardCopyOption.REPLACE_EXISTING);
+
+                profile.setProfileImage(newFilename);
+            }
         }
 
-        if (request.phone() != null) profile.setPhone(request.phone());
-        if (request.address() != null) profile.setAddress(request.address());
-        if (request.dateOfBirth() != null) profile.setDateOfBirth(request.dateOfBirth());
-
-        userProfileRepository.save(profile);
+        userRepository.save(user); // Cascade persists the profile
+        return profile;
     }
     @Transactional
     public String uploadImage(String email, MultipartFile file) throws IOException {
@@ -181,7 +199,7 @@ public class UserService {
         Path uploadPath = Paths.get(UPLOAD_DIR);
         if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
 
-        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String fileName = user.getUsername() + "_" + file.getOriginalFilename();
         Path filePath = uploadPath.resolve(fileName);
 
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
