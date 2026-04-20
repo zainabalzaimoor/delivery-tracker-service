@@ -21,6 +21,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final DeliveryStatusHistoryRepository statusHistoryRepository;
+    private final NotificationService notificationService;
 
     // Create Order by a customer
     @Transactional
@@ -39,6 +40,20 @@ public class OrderService {
 
         Order savedOrder = orderRepository.save(order);
         saveStatusHistory(savedOrder);
+
+        String subject = "Order Confirmation";
+        String emailBody = """
+        Hello %s,
+
+        Your order Id #%d has been successfully created and is being processed.
+
+        Best regards,
+        Delivery Tracker Team
+        """.formatted(customer.getUsername(), order.getId());
+
+        String shortMessage = "Order " + order.getId() + " created successfully.";
+
+        notificationService.notify(order.getCustomer(), subject, emailBody, shortMessage, true);
 
         return savedOrder;
     }
@@ -89,6 +104,9 @@ public class OrderService {
         Order order = getOrderById(id);
         if (order.getStatus() == OrderStatus.DELIVERED) {
             throw new RuntimeException("Cannot cancel a delivered order");
+        }
+        if(order.getStatus() == OrderStatus.ASSIGNED){
+            throw new RuntimeException("Cannot cancel an assigned order");
         }
         order.setStatus(OrderStatus.CANCELLED);
         saveStatusHistory(order);

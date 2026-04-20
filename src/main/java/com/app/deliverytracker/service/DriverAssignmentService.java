@@ -27,6 +27,7 @@ public class DriverAssignmentService {
     private final UserRepository userRepository;
     private final DeliveryStatusHistoryRepository historyRepository;
     private final LocationSseController sseController;
+    private final NotificationService notificationService;
     private final ReentrantLock lock = new ReentrantLock();
 
     // ASSIGN DRIVER WITH CONCURRENCY CONTROL -- ADMIN
@@ -81,7 +82,6 @@ public class DriverAssignmentService {
     // START DELIVERY -- DRIVER
     @Transactional
     public Order startDelivery(Long orderId, Long driverId) {
-
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
@@ -100,6 +100,21 @@ public class DriverAssignmentService {
         order.setStatus(OrderStatus.ON_THE_WAY);
         orderRepository.save(order);
 
+        User customer = orderRepository.findCustomerByOrderId(orderId);
+        String subject = "Delivery Started";
+        String emailBody = """
+        Hello %s,
+
+        Your order Id #%d is now on the way! A driver has been assigned.
+
+        Best regards,
+        Delivery Tracker Team
+        """.formatted(customer.getUsername(), order.getId());
+
+        String shortMessage = "Order " + order.getId() + " is on the way.";
+
+        notificationService.notify(order.getCustomer(), subject, emailBody, shortMessage, true);
+
         saveHistory(order, OrderStatus.ON_THE_WAY);
 
         return order;
@@ -108,7 +123,6 @@ public class DriverAssignmentService {
     // COMPLETE DELIVERY -- DRIVER
     @Transactional
     public Order completeDelivery(Long orderId, Long driverId) {
-
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
@@ -125,7 +139,26 @@ public class DriverAssignmentService {
         order.setStatus(OrderStatus.DELIVERED);
         orderRepository.save(order);
 
+        assignment.setActive(false);
+        assignmentRepository.save(assignment);
+
+
         sseController.closeStream(orderId, "Order DELIVERED!");
+
+        User customer = orderRepository.findCustomerByOrderId(orderId);
+        String subject = "Order Delivered";
+        String emailBody = """
+        Hello %s,
+
+        Your order Id #%d has been delivered. Thank you for choosing us!
+
+        Best regards,
+        Delivery Tracker Team
+        """.formatted(customer.getUsername(), order.getId());
+
+        String shortMessage = "Order " + order.getId() + " delivered.";
+
+        notificationService.notify(order.getCustomer(), subject, emailBody, shortMessage, true);
 
         saveHistory(order, OrderStatus.DELIVERED);
 
