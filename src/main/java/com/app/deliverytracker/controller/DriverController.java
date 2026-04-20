@@ -30,4 +30,16 @@ public class DriverController {
         return ResponseEntity.ok(service.completeDelivery(orderId, driverId));
     }
 
+    // sends locations
+    @PostMapping("/locations/{orderId}/{driverId}")
+    public String update(
+            @PathVariable Long orderId,
+            @PathVariable Long driverId,
+            @RequestParam Double lat,
+            @RequestParam Double lng){
+        locationUpdateService.updateLocation(orderId,driverId,lat,lng);
+
+        return "Location sent";
+    }
+
 }
