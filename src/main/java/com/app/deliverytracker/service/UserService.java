@@ -1,20 +1,30 @@
 package com.app.deliverytracker.service;
 
 import com.app.deliverytracker.dto.LoginRequest;
+import com.app.deliverytracker.dto.LoginResponse;
+import com.app.deliverytracker.dto.UserProfileUpdateDTO;
 import com.app.deliverytracker.enums.Role;
 import com.app.deliverytracker.enums.UserStatus;
 import com.app.deliverytracker.model.User;
 import com.app.deliverytracker.model.UserProfile;
+import com.app.deliverytracker.repository.UserProfileRepository;
 import com.app.deliverytracker.repository.UserRepository;
 import com.app.deliverytracker.security.JWTUtils;
 import com.app.deliverytracker.security.MyUserDetailsService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -26,14 +36,17 @@ public class UserService {
     private final EmailService emailService;
     private final JWTUtils jwtUtils;
     private final MyUserDetailsService userDetailsService;
+    private final Path root = Paths.get("uploads/profiles");
+    private final UserProfileRepository userProfileRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService, JWTUtils jwtUtils, MyUserDetailsService userDetailsService) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService, JWTUtils jwtUtils, MyUserDetailsService userDetailsService, UserProfileRepository userProfileRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
+        this.userProfileRepository = userProfileRepository;
     }
 
     public ResponseEntity<?> createUser(User user) throws Exception {
@@ -73,7 +86,7 @@ public class UserService {
     }
 
     // Login
-    public String loginUser(LoginRequest request) {
+    public LoginResponse loginUser(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
@@ -84,9 +97,18 @@ public class UserService {
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }
+
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
 
-        return jwtUtils.generateToken(userDetails);
+        String role = userDetails.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElse("ROLE_USER");
+
+        String token = jwtUtils.generateToken(userDetails);
+
+        return new LoginResponse(token, role, "Login successful!");
     }
 
     public void processForgotPassword(String email) {
@@ -142,5 +164,72 @@ public class UserService {
         user.setStatus(UserStatus.INACTIVE);
         userRepository.save(user);
     }
+
+    @Transactional
+    public UserProfile updateFullProfile(String email, UserProfileUpdateDTO request) throws IOException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Use your One-to-One relationship getter
+        UserProfile profile = user.getProfile();
+
+        if (request != null) {
+            // Update text fields
+            if (request.phone() != null) profile.setPhone(request.phone());
+            if (request.address() != null) profile.setAddress(request.address());
+            if (request.dateOfBirth() != null) profile.setDateOfBirth(request.dateOfBirth());
+
+            // Update Image
+            MultipartFile file = request.file();
+            if (file != null && !file.isEmpty()) {
+                // Delete old image if it exists
+                if (profile.getProfileImage() != null) {
+                    Path oldPath = root.resolve(profile.getProfileImage());
+                    Files.deleteIfExists(oldPath);
+                }
+
+                // Save new image with unique name
+                String newFilename = user.getUsername() + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
+                if (!Files.exists(root)) Files.createDirectories(root);
+                Files.copy(file.getInputStream(), this.root.resolve(newFilename), StandardCopyOption.REPLACE_EXISTING);
+
+                profile.setProfileImage(newFilename);
+            }
+        }
+
+        userRepository.save(user); // Cascade persists the profile
+        return profile;
+    }
+    @Transactional
+    public String uploadImage(String email, MultipartFile file) throws IOException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserProfile profile = getOrCreateProfile(user);
+        String UPLOAD_DIR = "uploads/profiles/";
+        Path uploadPath = Paths.get(UPLOAD_DIR);
+        if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+
+        String fileName = user.getUsername() + "_" + file.getOriginalFilename();
+        Path filePath = uploadPath.resolve(fileName);
+
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        profile.setProfileImage(fileName);
+        userProfileRepository.save(profile);
+
+        return fileName;
+    }
+
+    private UserProfile getOrCreateProfile(User user) {
+        if (user.getProfile() == null) {
+            UserProfile newProfile = new UserProfile();
+            newProfile.setUser(user);
+            return newProfile;
+        }
+        return user.getProfile();
+    }
+
+
 
 }

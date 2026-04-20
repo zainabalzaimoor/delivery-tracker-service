@@ -3,21 +3,18 @@ package com.app.deliverytracker.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Data
+@Getter @Setter @AllArgsConstructor @NoArgsConstructor
 @Table(name = "location_updates")
 public class LocationUpdate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(precision = 9, scale = 6) // Supports 000.000000 format
-    private BigDecimal latitude;
-    @Column(precision = 9, scale = 6)
-    private BigDecimal longitude;
-    private LocalDateTime timestamp = LocalDateTime.now();
+    private Double latitude;
+    private Double longitude;
+    private LocalDateTime timestamp;
 
     @ManyToOne
     @JoinColumn(name = "order_id")

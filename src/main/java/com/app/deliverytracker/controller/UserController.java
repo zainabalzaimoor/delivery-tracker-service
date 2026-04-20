@@ -1,20 +1,23 @@
 package com.app.deliverytracker.controller;
 
-import com.app.deliverytracker.dto.ChangePasswordRequest;
-import com.app.deliverytracker.dto.LoginRequest;
-import com.app.deliverytracker.dto.ResetPasswordRequest;
+import com.app.deliverytracker.dto.*;
 import com.app.deliverytracker.model.User;
+import com.app.deliverytracker.model.UserProfile;
 import com.app.deliverytracker.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,14 +49,8 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
-        System.out.println("Calling loginUser ==> ");
         try {
-            String token = userService.loginUser(request);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("token", token);
-            response.put("message", "Login successful!");
-
+            LoginResponse response = userService.loginUser(request);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
@@ -107,6 +104,24 @@ public class UserController {
             return ResponseEntity.ok("Password changed successfully!");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/update-profile")
+    public ResponseEntity<?> updateProfile(@ModelAttribute UserProfileUpdateDTO userProfileUpdateRequest,
+                                           Principal principal) throws IOException {
+        UserProfile updated = userService.updateFullProfile(principal.getName(), userProfileUpdateRequest);
+        return ResponseEntity.ok(updated);
+    }
+    @PostMapping("/profile/image")
+    public ResponseEntity<String> uploadImage(
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            String fileName = userService.uploadImage(userDetails.getUsername(), file);
+            return ResponseEntity.ok("Profile image uploaded: " + fileName);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Failed to upload image: " + e.getMessage());
         }
     }
 

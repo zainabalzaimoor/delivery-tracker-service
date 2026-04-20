@@ -38,6 +38,7 @@ public class SecurityConfig {
                                 ,"/login-success")
                                 .permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/driver/**").hasRole("DRIVER")
                         .anyRequest().authenticated() // Everything else is locked
                 );
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
