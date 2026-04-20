@@ -1,6 +1,7 @@
 package com.app.deliverytracker.service;
 
 import com.app.deliverytracker.dto.LoginRequest;
+import com.app.deliverytracker.dto.LoginResponse;
 import com.app.deliverytracker.dto.UserProfileUpdateDTO;
 import com.app.deliverytracker.enums.Role;
 import com.app.deliverytracker.enums.UserStatus;
@@ -13,6 +14,7 @@ import com.app.deliverytracker.security.MyUserDetailsService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -84,7 +86,7 @@ public class UserService {
     }
 
     // Login
-    public String loginUser(LoginRequest request) {
+    public LoginResponse loginUser(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
@@ -95,10 +97,36 @@ public class UserService {
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }
+
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
 
-        return jwtUtils.generateToken(userDetails);
+        // 🔥 Extract role
+        String role = userDetails.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElse("ROLE_USER");
+
+        String token = jwtUtils.generateToken(userDetails);
+
+        return new LoginResponse(token, role, "Login successful!");
     }
+//    public String loginUser(LoginRequest request) {
+//        User user = userRepository.findByEmail(request.email())
+//                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+//
+//        if (!user.isVerified()) {
+//            throw new RuntimeException("Please verify your email before logging in.");
+//        }
+//
+//        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+//            throw new RuntimeException("Invalid email or password");
+//        }
+//        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+//        userDetails.getAuthorities();
+//
+//        return jwtUtils.generateToken(userDetails);
+//    }
 
     public void processForgotPassword(String email) {
         User user = userRepository.findByEmail(email)

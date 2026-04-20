@@ -1,9 +1,6 @@
 package com.app.deliverytracker.controller;
 
-import com.app.deliverytracker.dto.ChangePasswordRequest;
-import com.app.deliverytracker.dto.LoginRequest;
-import com.app.deliverytracker.dto.ResetPasswordRequest;
-import com.app.deliverytracker.dto.UserProfileUpdateDTO;
+import com.app.deliverytracker.dto.*;
 import com.app.deliverytracker.model.User;
 import com.app.deliverytracker.model.UserProfile;
 import com.app.deliverytracker.service.UserService;
@@ -52,14 +49,8 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
-        System.out.println("Calling loginUser ==> ");
         try {
-            String token = userService.loginUser(request);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("token", token);
-            response.put("message", "Login successful!");
-
+            LoginResponse response = userService.loginUser(request);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
