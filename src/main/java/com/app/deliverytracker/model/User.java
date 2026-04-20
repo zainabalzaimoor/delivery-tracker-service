@@ -2,6 +2,7 @@ package com.app.deliverytracker.model;
 
 import com.app.deliverytracker.enums.Role;
 import com.app.deliverytracker.enums.UserStatus;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Data
+@Getter @Setter @AllArgsConstructor @NoArgsConstructor
 @Table(name = "users")
 public class User {
     @Id
@@ -41,16 +42,18 @@ public class User {
     private LocalDateTime updatedAt;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
     private UserProfile profile;
     @OneToMany(mappedBy = "customer")
-    @JsonIgnore
+    @JsonBackReference
     private List<Order> orders;
     @OneToMany(mappedBy = "driver")
+    @JsonBackReference
     private List<DriverAssignment> driverAssignments;
     @OneToMany(mappedBy = "driver")
+    @JsonBackReference
     private List<LocationUpdate> locationUpdates;
     @OneToMany(mappedBy = "user")
+    @JsonBackReference
     private List<Notification> notifications;
 
 }

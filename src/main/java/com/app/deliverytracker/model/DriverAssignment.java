@@ -1,18 +1,17 @@
 package com.app.deliverytracker.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString(exclude = {"order", "driver"})
 @Table(name = "driver_assignments")
 public class DriverAssignment {
     @Id
@@ -26,7 +25,6 @@ public class DriverAssignment {
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
-    @JsonIgnore
     private Order order;
     @ManyToOne
     @JoinColumn(name = "driver_id", nullable = false)

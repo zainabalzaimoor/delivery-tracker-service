@@ -1,8 +1,7 @@
 package com.app.deliverytracker.model;
 
 import com.app.deliverytracker.enums.OrderStatus;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -11,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Data
+@Getter @Setter @AllArgsConstructor @NoArgsConstructor
 @Table(name = "orders")
 public class Order {
     @Id
@@ -31,10 +30,13 @@ public class Order {
     @JoinColumn(name = "customer_id", nullable = false)
     private User customer;
     @OneToMany(mappedBy = "order")
+    @JsonBackReference
     private List<DriverAssignment> driverAssignments;
     @OneToMany(mappedBy = "order")
+    @JsonBackReference
     private List<LocationUpdate> locationUpdates;
     @OneToMany(mappedBy = "order")
+    @JsonBackReference
     private List<DeliveryStatusHistory> statusHistory;
 
 }

@@ -1,13 +1,12 @@
 package com.app.deliverytracker.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Data
+@Getter @Setter @AllArgsConstructor @NoArgsConstructor
 @Table(name = "location_updates")
 public class LocationUpdate {
     @Id
@@ -19,7 +18,6 @@ public class LocationUpdate {
 
     @ManyToOne
     @JoinColumn(name = "order_id")
-    @JsonIgnore
     private Order order;
 
     @ManyToOne

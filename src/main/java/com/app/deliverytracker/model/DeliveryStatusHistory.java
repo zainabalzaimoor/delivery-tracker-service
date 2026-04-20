@@ -1,7 +1,6 @@
 package com.app.deliverytracker.model;
 
 import com.app.deliverytracker.enums.OrderStatus;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -21,6 +20,5 @@ public class DeliveryStatusHistory {
     private LocalDateTime updatedAt;
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
-    @JsonIgnore
     private Order order;
 }
