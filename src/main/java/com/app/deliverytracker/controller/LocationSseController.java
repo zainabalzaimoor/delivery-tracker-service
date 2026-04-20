@@ -27,6 +27,14 @@ public class LocationSseController {
         emitter.onCompletion(() -> emitters.remove(orderId));
         emitter.onTimeout(() -> emitters.remove(orderId));
 
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("INIT")
+                    .data("SSE connected for order " + orderId));
+        } catch (Exception e){
+            emitters.remove(orderId);
+        }
+
         return emitter;
     }
 
