@@ -100,7 +100,6 @@ public class UserService {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
 
-        // 🔥 Extract role
         String role = userDetails.getAuthorities()
                 .stream()
                 .findFirst()
@@ -111,22 +110,6 @@ public class UserService {
 
         return new LoginResponse(token, role, "Login successful!");
     }
-//    public String loginUser(LoginRequest request) {
-//        User user = userRepository.findByEmail(request.email())
-//                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
-//
-//        if (!user.isVerified()) {
-//            throw new RuntimeException("Please verify your email before logging in.");
-//        }
-//
-//        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-//            throw new RuntimeException("Invalid email or password");
-//        }
-//        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-//        userDetails.getAuthorities();
-//
-//        return jwtUtils.generateToken(userDetails);
-//    }
 
     public void processForgotPassword(String email) {
         User user = userRepository.findByEmail(email)
