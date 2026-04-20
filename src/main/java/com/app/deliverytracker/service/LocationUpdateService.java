@@ -24,7 +24,7 @@ public class LocationUpdateService {
     private final LocationSseController sseController;
 
     @Transactional
-    public LocationUpdate updateLocation(Long orderId, Long driverId, Double lat, Double lng) {
+    public void updateLocation(Long orderId, Long driverId, Double lat, Double lng) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
@@ -52,7 +52,6 @@ public class LocationUpdateService {
             assignmentService.completeDelivery(orderId, driverId);
         }
 
-        return loc;
     }
 
     private boolean isNearDestination(Double lat, Double lng) {

@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin")
@@ -33,5 +35,12 @@ public class AdminController {
                 assignmentService.assignDriver(orderId, driverId)
         );
     }
+
+    @GetMapping("/orders/getAll")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<Order> getAll(){
+        return orderService.getAllOrders();
+    }
+
 
 }
