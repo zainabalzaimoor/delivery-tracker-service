@@ -30,13 +30,13 @@ public class Order {
     @JoinColumn(name = "customer_id", nullable = false)
     private User customer;
     @OneToMany(mappedBy = "order")
-    @JsonBackReference
+    @JsonBackReference(value = "order-assignments")
     private List<DriverAssignment> driverAssignments;
     @OneToMany(mappedBy = "order")
-    @JsonBackReference
+    @JsonBackReference(value = "order-locations")
     private List<LocationUpdate> locationUpdates;
     @OneToMany(mappedBy = "order")
-    @JsonBackReference
+    @JsonBackReference(value = "order-history")
     private List<DeliveryStatusHistory> statusHistory;
 
 }

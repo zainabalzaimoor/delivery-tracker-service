@@ -1,13 +1,16 @@
 package com.app.deliverytracker.controller;
 
 import com.app.deliverytracker.model.DriverAssignment;
+import com.app.deliverytracker.model.Order;
+import com.app.deliverytracker.repository.OrderRepository;
 import com.app.deliverytracker.service.DriverAssignmentService;
+import com.app.deliverytracker.service.OrderService;
 import com.app.deliverytracker.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 
@@ -17,6 +20,7 @@ import java.util.List;
 public class AdminController {
     private final UserService userService;
     private final DriverAssignmentService assignmentService;
+    private final OrderService orderService;
 
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")

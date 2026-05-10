@@ -44,16 +44,16 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private UserProfile profile;
     @OneToMany(mappedBy = "customer")
-    @JsonBackReference
+    @JsonBackReference(value ="user-orders")
     private List<Order> orders;
     @OneToMany(mappedBy = "driver")
-    @JsonBackReference
+    @JsonBackReference(value = "user-assignments")
     private List<DriverAssignment> driverAssignments;
     @OneToMany(mappedBy = "driver")
-    @JsonBackReference
+    @JsonBackReference(value = "user-locations")
     private List<LocationUpdate> locationUpdates;
     @OneToMany(mappedBy = "user")
-    @JsonBackReference
+    @JsonBackReference(value = "user-notifications")
     private List<Notification> notifications;
 
 }

@@ -21,7 +21,7 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
-@Controller
+@RestController
 @RequestMapping("/api/auth")
 public class UserController {
     private final UserService userService;
@@ -32,6 +32,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
+    @ResponseBody
     public ResponseEntity<?> registerUser(@RequestBody User user) throws Exception {
         System.out.println("Calling registerUser ==> ");
         return userService.createUser(user);

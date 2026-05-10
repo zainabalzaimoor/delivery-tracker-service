@@ -21,7 +21,7 @@ public class UserProfile {
     private Long id;
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
-    @JsonIgnore
+    @JsonBackReference
     private User user;
     private String profileImage;
     private String phone;

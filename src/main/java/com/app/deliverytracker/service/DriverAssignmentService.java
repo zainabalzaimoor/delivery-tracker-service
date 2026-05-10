@@ -72,7 +72,7 @@ public class DriverAssignmentService {
             return assignmentRepository.save(assignment);
 
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt(); // best practice
+            Thread.currentThread().interrupt();
             throw new RuntimeException("Thread interrupted", e);
         } finally {
             lock.unlock();
