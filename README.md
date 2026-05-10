@@ -127,6 +127,7 @@ The system supports multipart file uploads for profile pictures, stored locally 
 ## 🧑‍💻 Author
 
 **Zainab Alzaimoor**
+
 *Java & Spring Boot Developer*
 
 ---
