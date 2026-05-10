@@ -1,4 +1,4 @@
-# 🚚 Delivery Tracker API
+# 🚚 Delivery Tracker App
 
 A real-time delivery management and tracking system. This project handles the lifecycle of a delivery—from order creation to live driver tracking—using **Server-Sent Events (SSE)** to stream coordinates to the customer.
 
